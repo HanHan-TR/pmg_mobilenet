@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# 模型训练实验结果
+res/
+
+# 模型权重文件
+*.pth

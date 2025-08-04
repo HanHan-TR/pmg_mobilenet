@@ -56,7 +56,7 @@ class ConvModule(nn.Module):
         assert isinstance(self.order, tuple) and len(self.order) == 3
         assert set(order) == set(['conv', 'norm', 'act'])
 
-        self.conv = nn.Conv2d(in_channels == in_channels,
+        self.conv = nn.Conv2d(in_channels=in_channels,
                               out_channels=out_channels,
                               kernel_size=kernel_size,
                               stride=stride,

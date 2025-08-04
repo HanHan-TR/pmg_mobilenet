@@ -43,9 +43,8 @@ class InvertedResidual(nn.Module):
                  out_channels,
                  stride,
                  expand_ratio,
-                 with_cp=False,
-                 init_cfg=None):
-        super(InvertedResidual, self).__init__(init_cfg)
+                 with_cp=False):
+        super(InvertedResidual, self).__init__()
         self.stride = stride
         assert stride in [1, 2], f'stride must in [1, 2]. ' \
             f'But received {stride}.'
@@ -113,23 +112,18 @@ class MobileNetV2(nn.Module):
 
     # Parameters to build layers. 4 parameters are needed to construct a
     # layer, from left to right: expand_ratio, channel, num_blocks, stride.
-    arch_settings = [[1, 16, 1, 1],
-                     [6, 24, 2, 2],  # 1
-                     [6, 32, 3, 2],  # 2
-                     [6, 64, 4, 2],
-                     [6, 96, 3, 1],  # 4
-                     [6, 160, 3, 2],
-                     [6, 320, 1, 1]  # 6
+    arch_settings = [[1, 16, 1, 1],  # 0 layer1: 1/2
+                     [6, 24, 2, 2],  # 1 layer2: 1/2 xf1
+                     [6, 32, 3, 2],  # 2 layer3: 1/4 xf2
+                     [6, 64, 4, 2],  # 3 layer4: 1/8 xf3
+                     [6, 96, 3, 1],  # 4 layer5: 1/16
+                     [6, 160, 3, 2],  # 5 layer6: 1/16 xf4
+                     [6, 320, 1, 1]  # 6 layer7: 1/32 xf5
                      ]
 
     def __init__(self,
                  widen_factor=1.,
-                 out_indices=(1, 2, 4, 6),
-                 frozen_stages=-1,
-                 conv_cfg=None,
-                 norm_cfg=dict(type='BN'),
-                 act_cfg=dict(type='ReLU6'),
-                 norm_eval=False,
+                 out_indices=(1, 2, 3, 5, 6),
                  with_cp=False):
         super(MobileNetV2, self).__init__()
         self.widen_factor = widen_factor
@@ -138,16 +132,6 @@ class MobileNetV2(nn.Module):
             if index not in range(0, 8):
                 raise ValueError('the item in out_indices must in '
                                  f'range(0, 8). But received {index}')
-
-        if frozen_stages not in range(-1, 8):
-            raise ValueError('frozen_stages must be in range(-1, 8). '
-                             f'But received {frozen_stages}')
-        self.out_indices = out_indices
-        self.frozen_stages = frozen_stages
-        self.conv_cfg = conv_cfg
-        self.norm_cfg = norm_cfg
-        self.act_cfg = act_cfg
-        self.norm_eval = norm_eval
         self.with_cp = with_cp
 
         self.in_channels = make_divisible(32 * widen_factor, 8)
@@ -156,10 +140,7 @@ class MobileNetV2(nn.Module):
                                 out_channels=self.in_channels,
                                 kernel_size=3,
                                 stride=2,
-                                padding=1,
-                                conv_cfg=self.conv_cfg,
-                                norm_cfg=self.norm_cfg,
-                                act_cfg=self.act_cfg)
+                                padding=1)
 
         self.layers = []
 
@@ -183,10 +164,7 @@ class MobileNetV2(nn.Module):
                            out_channels=self.out_channel,
                            kernel_size=1,
                            stride=1,
-                           padding=0,
-                           conv_cfg=self.conv_cfg,
-                           norm_cfg=self.norm_cfg,
-                           act_cfg=self.act_cfg)
+                           padding=0)
         self.add_module('conv2', layer)
         self.layers.append('conv2')
 
@@ -223,14 +201,9 @@ class MobileNetV2(nn.Module):
             if i in self.out_indices:
                 outs.append(x)
 
-        return tuple(outs)
+        return outs[0], outs[1], outs[2], outs[3], outs[4]
 
-    def _freeze_stages(self):
-        if self.frozen_stages >= 0:
-            for param in self.conv1.parameters():
-                param.requires_grad = False
-        for i in range(1, self.frozen_stages + 1):
-            layer = getattr(self, f'layer{i}')
-            layer.eval()
-            for param in layer.parameters():
-                param.requires_grad = False
+
+if __name__ == "__main__":
+    model = MobileNetV2()
+    pass
