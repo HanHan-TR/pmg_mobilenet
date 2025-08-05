@@ -45,18 +45,15 @@ def train(nb_epoch, batch_size, store_name, resume=False, start_epoch=0, model_p
     # cudnn.benchmark = True
 
     CELoss = nn.CrossEntropyLoss()
-    optimizer = optim.SGD([
-        {'params': net.classifier_concat.parameters(), 'lr': 0.002},
-        {'params': net.conv_block1.parameters(), 'lr': 0.002},
-        {'params': net.classifier1.parameters(), 'lr': 0.002},
-        {'params': net.conv_block2.parameters(), 'lr': 0.002},
-        {'params': net.classifier2.parameters(), 'lr': 0.002},
-        {'params': net.conv_block3.parameters(), 'lr': 0.002},
-        {'params': net.classifier3.parameters(), 'lr': 0.002},
-        {'params': net.features.parameters(), 'lr': 0.0002}
-
-    ],
-        momentum=0.9, weight_decay=5e-4)
+    optimizer = optim.SGD([{'params': net.classifier_concat.parameters(), 'lr': 0.002},
+                           {'params': net.conv_block1.parameters(), 'lr': 0.002},
+                           {'params': net.classifier1.parameters(), 'lr': 0.002},
+                           {'params': net.conv_block2.parameters(), 'lr': 0.002},
+                           {'params': net.classifier2.parameters(), 'lr': 0.002},
+                           {'params': net.conv_block3.parameters(), 'lr': 0.002},
+                           {'params': net.classifier3.parameters(), 'lr': 0.002},
+                           {'params': net.backbone.parameters(), 'lr': 0.0002}],
+                          momentum=0.9, weight_decay=5e-4)
 
     max_val_acc = 0
     lr = [0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.0002]

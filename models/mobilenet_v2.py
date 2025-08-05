@@ -1,4 +1,4 @@
-# Copyright (c) OpenMMLab. All rights reserved.
+import torch
 import torch.nn as nn
 import torch.utils.checkpoint as cp
 from torch.nn.modules.batchnorm import _BatchNorm
@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 RANK = int(os.getenv('RANK', -1))
 
-from models.base.conv_module import ConvModule
+from models.conv_module import ConvModule
 from core.math import make_divisible
 
 
@@ -112,18 +112,18 @@ class MobileNetV2(nn.Module):
 
     # Parameters to build layers. 4 parameters are needed to construct a
     # layer, from left to right: expand_ratio, channel, num_blocks, stride.
-    arch_settings = [[1, 16, 1, 1],  # 0 layer1: 1/2
-                     [6, 24, 2, 2],  # 1 layer2: 1/2 xf1
-                     [6, 32, 3, 2],  # 2 layer3: 1/4 xf2
-                     [6, 64, 4, 2],  # 3 layer4: 1/8 xf3
-                     [6, 96, 3, 1],  # 4 layer5: 1/16
-                     [6, 160, 3, 2],  # 5 layer6: 1/16 xf4
-                     [6, 320, 1, 1]  # 6 layer7: 1/32 xf5
+    arch_settings = [[1, 16, 1, 1],
+                     [6, 24, 2, 2],
+                     [6, 32, 3, 2],
+                     [6, 64, 4, 2],
+                     [6, 96, 3, 1],
+                     [6, 160, 3, 2],
+                     [6, 320, 1, 1]
                      ]
 
     def __init__(self,
                  widen_factor=1.,
-                 out_indices=(1, 2, 3, 5, 6),
+                 out_indices=(2, 4, 7),
                  with_cp=False):
         super(MobileNetV2, self).__init__()
         self.widen_factor = widen_factor
@@ -201,9 +201,23 @@ class MobileNetV2(nn.Module):
             if i in self.out_indices:
                 outs.append(x)
 
-        return outs[0], outs[1], outs[2], outs[3], outs[4]
+        return outs
 
 
 if __name__ == "__main__":
-    model = MobileNetV2()
+    imgs = torch.randn(1, 3, 448, 448)
+    model = MobileNetV2(out_indices=range(0, 8))
+
+    feat = model(imgs)
+
+    assert len(feat) == 8
+    assert feat[0].shape == torch.Size((1, 16, 224, 224))
+    assert feat[1].shape == torch.Size((1, 24, 112, 112))
+    assert feat[2].shape == torch.Size((1, 32, 56, 56))  # 2: xf3 to pmg conv_block1
+    assert feat[3].shape == torch.Size((1, 64, 28, 28))
+    assert feat[4].shape == torch.Size((1, 96, 28, 28))  # 4: xf4 to pmg conv_block2
+    assert feat[5].shape == torch.Size((1, 160, 14, 14))
+    assert feat[6].shape == torch.Size((1, 320, 14, 14))
+    assert feat[7].shape == torch.Size((1, 1280, 14, 14))  # 7: xf5 out of conv2 to pmg conv_block3
+
     pass

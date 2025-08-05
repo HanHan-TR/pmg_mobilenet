@@ -3,10 +3,11 @@ import random
 import torch
 import torchvision
 from torch.autograd import Variable
-from torchvision import transforms, models
+from torchvision import transforms
 import torch.nn.functional as F
-from pmg import PMG
+from models.pmg import PMG
 from models.resnet import resnet50
+from models.mobilenet_v2 import MobileNetV2
 
 
 def cosine_anneal_schedule(t, nb_epoch, lr):
@@ -17,13 +18,31 @@ def cosine_anneal_schedule(t, nb_epoch, lr):
     return float(lr / 2 * cos_out)
 
 
-def load_model(model_name, pretrain=True, require_grad=True):
+def load_model(model_name: str,
+               classes_num=3,
+               widen_factor: int = 1,
+               mobilenet_feature_size: int = 512,
+               pretrain: bool = True,
+               require_grad: bool = True):
     print('==> Building model..')
     if model_name == 'resnet50_pmg':
         net = resnet50(pretrained=pretrain)
         for param in net.parameters():
             param.requires_grad = require_grad
-        net = PMG(net, 512, 200)
+        net = PMG(net,
+                  inplanes=[256, 512, 1024],
+                  feature_size=512,
+                  widen_factor=1,
+                  classes_num=classes_num)
+    elif model_name == 'mobilenetv2_pmg':
+        net = MobileNetV2(widen_factor=widen_factor)
+        for param in net.parameters():
+            param.requires_grad = require_grad
+        net = PMG(net,
+                  inplanes=[32, 966, 320],
+                  feature_size=mobilenet_feature_size,
+                  widen_factor=widen_factor,
+                  classes_num=classes_num)
 
     return net
 
