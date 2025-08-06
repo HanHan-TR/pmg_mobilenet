@@ -208,6 +208,7 @@ def _resnet(arch, inplanes, planes, pretrained, progress, **kwargs):
     model = ResNet(inplanes, planes, **kwargs)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch],
+                                              model_dir='pretrained_ckpt',
                                               progress=progress)
         model.load_state_dict(state_dict)
     return model

@@ -2,6 +2,19 @@ import torch.nn as nn
 import torch
 from typing import List
 
+import sys
+import os
+from pathlib import Path
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[1]  # root directory
+if str(ROOT) not in sys.path:
+    sys.path.append(str(ROOT))  # add ROOT to PATH
+ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
+RANK = int(os.getenv('RANK', -1))
+
+from core.initialize import kaiming_init, constant_init
+
 
 class BasicConv(nn.Module):
     def __init__(self,
@@ -30,6 +43,12 @@ class BasicConv(nn.Module):
                                  eps=1e-5,
                                  momentum=0.01, affine=True) if bn else None
         self.relu = nn.ReLU() if relu else None
+
+        self.init_weights()
+
+    def init_weights(self):
+        kaiming_init(self.conv, a=0, nonlinearity='relu')
+        constant_init(self.bn, 1, bias=0)
 
     def forward(self, x):
         x = self.conv(x)
@@ -109,6 +128,29 @@ class PMG(nn.Module):
                                          nn.ReLU(inplace=True),
                                          nn.Linear(feature_size, classes_num),
                                          )
+        self.init_weights()
+
+    def init_weights(self):
+        """
+        递归初始化神经网络权重
+        - 对`nn.Conv2d`/`nn.Linear`使用Kaiming正态分布初始化
+        - 对`nn.BatchNorm1d`/`nn.BatchNorm2d`权重初始化为1，偏置初始化为0
+        - 如果模型中的子模块定义了自己的`init_weights`函数，则使用其自定义的初始化方法覆盖对其的初始化结果。
+        """
+        for module in self.modules():
+            if isinstance(module, (nn.Conv2d, nn.Linear)):
+                kaiming_init(module=module,
+                             a=0,
+                             mode='fan_out',
+                             nonlinearity='relu',
+                             bias=0,
+                             distribution='normal')
+            elif isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d)):
+                constant_init(module, 1, bias=0)
+
+        for m in self.children():
+            if hasattr(m, 'init_weights'):
+                m.init_weights()
 
     def forward(self, x):
         xf1, xf2, xf3, xf4, xf5 = self.backbone(x)
@@ -117,17 +159,14 @@ class PMG(nn.Module):
         xl2 = self.conv_block2(xf4)
         xl3 = self.conv_block3(xf5)
 
-        # 对resnet conv3_x提取的通道进行展平后分类，该处通道数为512，图像尺寸缩小了8倍
         xl1 = self.max1(xl1)
         xl1 = xl1.view(xl1.size(0), -1)
         xc1 = self.classifier1(xl1)
 
-        # 对resnet conv4_x提取的通道进行展平后分类，该处通道数为1024，图像尺寸缩小了16倍
         xl2 = self.max2(xl2)
         xl2 = xl2.view(xl2.size(0), -1)
         xc2 = self.classifier2(xl2)
 
-        # 对resnet conv5_x提取的通道进行展平后分类，该处通道数为2048，图像尺寸缩小了32倍
         xl3 = self.max3(xl3)
         xl3 = xl3.view(xl3.size(0), -1)
         xc3 = self.classifier3(xl3)

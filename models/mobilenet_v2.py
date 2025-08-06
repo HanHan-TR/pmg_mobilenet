@@ -201,7 +201,7 @@ class MobileNetV2(nn.Module):
             if i in self.out_indices:
                 outs.append(x)
 
-        return outs
+        return outs[0], outs[1], outs[2], outs[4], outs[6]
 
 
 if __name__ == "__main__":

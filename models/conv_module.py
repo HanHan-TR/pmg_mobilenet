@@ -69,7 +69,7 @@ class ConvModule(nn.Module):
             norm_channels = out_channels
         else:
             norm_channels = in_channels
-        self.norm = nn.BatchNorm2d(num_features=norm_channels, eps=1e-5)
+        self.bn = nn.BatchNorm2d(num_features=norm_channels, eps=1e-5)
 
         if self.with_act:
             self.activate = nn.ReLU6(inplace=True)
@@ -78,14 +78,14 @@ class ConvModule(nn.Module):
 
     def init_weights(self):
         kaiming_init(self.conv, a=0, nonlinearity='relu')
-        constant_init(self.norm, 1, bias=0)
+        constant_init(self.bn, 1, bias=0)
 
     def forward(self, x):
         for layer in self.order:
             if layer == 'conv':
                 x = self.conv(x)
             elif layer == 'norm':
-                x = self.norm(x)
+                x = self.bn(x)
             elif layer == 'act' and self.with_act:
                 x = self.activate(x)
 

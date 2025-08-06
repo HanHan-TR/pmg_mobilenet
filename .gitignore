@@ -6,4 +6,5 @@ __pycache__/
 res/
 
 # 模型权重文件
+pretrained_ckpt/
 *.pth
