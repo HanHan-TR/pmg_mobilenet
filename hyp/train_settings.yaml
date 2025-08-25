@@ -1,0 +1,10 @@
+nb_epoch: 100          # number of epoch
+batch_size_train: 24
+batch_size_val: 8
+lr: [0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.002, 0.0002]
+momentum: 0.9
+weight_decay: 0.0005  # 5e-4
+
+# ---------------- 可复现性设置 ------------
+deterministic: True
+seed: 123

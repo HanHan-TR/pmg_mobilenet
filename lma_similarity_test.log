@@ -1,0 +1,188 @@
+
+ ========= Video: LMA-1a.mp4, standard image: LMA-1a_0006831.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.284, max: 0.651 
+[after]: 
+ min: 0.005, mean: 0.048, max: 0.082 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.284, max: 0.651 
+[after]: 
+ min: 0.005, mean: 0.048, max: 0.082 
+-------------> dist_euc: 
+[before]: 
+ min: 0.594, mean: 0.954, max: 0.966 
+[after]: 
+ min: 0.756, mean: 0.900, max: 0.921 
+
+ ========= Video: LMA-2.mp4, standard image: LMA-2_0002115.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.242, max: 0.767 
+[after]: 
+ min: 0.004, mean: 0.124, max: 0.407 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.242, max: 0.767 
+[after]: 
+ min: 0.004, mean: 0.124, max: 0.407 
+-------------> dist_euc: 
+[before]: 
+ min: 0.619, mean: 0.945, max: 0.969 
+[after]: 
+ min: 0.741, mean: 0.940, max: 0.964 
+
+ ========= Video: LMA-3.mp4, standard image: LMA-3_0002607.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.179, max: 0.756 
+[after]: 
+ min: 0.012, mean: 0.122, max: 0.171 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.179, max: 0.756 
+[after]: 
+ min: 0.012, mean: 0.122, max: 0.171 
+-------------> dist_euc: 
+[before]: 
+ min: 0.566, mean: 0.937, max: 0.968 
+[after]: 
+
+ min: 0.829, mean: 0.938, max: 0.947 
+
+ ========= Video: LMA-4.mp4, standard image: LMA-4_0002001.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.116, max: 0.446 
+[after]: 
+ min: 0.008, mean: 0.051, max: 0.122 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.116, max: 0.446 
+[after]: 
+ min: 0.008, mean: 0.051, max: 0.122 
+-------------> dist_euc: 
+[before]: 
+ min: 0.528, mean: 0.917, max: 0.966 
+[after]: 
+ min: 0.802, mean: 0.912, max: 0.944 
+
+ ========= Video: LMA-5.mp4, standard image: LMA-5_0001500.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.002, mean: 0.265, max: 0.494 
+[after]: 
+ min: 0.011, mean: 0.325, max: 0.595 
+-------------> dist_dot: 
+[before]: 
+ min: 0.002, mean: 0.265, max: 0.494 
+[after]: 
+ min: 0.011, mean: 0.325, max: 0.595 
+-------------> dist_euc: 
+[before]: 
+ min: 0.636, mean: 0.943, max: 0.957 
+[after]: 
+ min: 0.776, mean: 0.936, max: 0.969 
+
+ ========= Video: LMA-6.mp4, standard image: LMA-6_0000900.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.131, max: 0.732 
+[after]: 
+ min: 0.004, mean: 0.129, max: 0.241 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.131, max: 0.732 
+[after]: 
+ min: 0.004, mean: 0.129, max: 0.241 
+-------------> dist_euc: 
+[before]: 
+ min: 0.598, mean: 0.913, max: 0.966 
+[after]: 
+ min: 0.731, mean: 0.933, max: 0.952 
+
+ ========= Video: LMA-7.mp4, standard image: LMA-7_0000800.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.002, mean: 0.092, max: 0.369 
+[after]: 
+ min: 0.007, mean: 0.085, max: 0.250 
+-------------> dist_dot: 
+[before]: 
+ min: 0.002, mean: 0.092, max: 0.369 
+[after]: 
+ min: 0.007, mean: 0.085, max: 0.250 
+-------------> dist_euc: 
+[before]: 
+ min: 0.641, mean: 0.912, max: 0.960 
+[after]: 
+ min: 0.786, mean: 0.926, max: 0.955 
+
+ ========= Video: LMA-8.mp4, standard image: LMA-8_0000500.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.105, max: 0.286 
+[after]: 
+ min: 0.002, mean: 0.091, max: 0.155 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.105, max: 0.286 
+[after]: 
+ min: 0.002, mean: 0.091, max: 0.155 
+-------------> dist_euc: 
+[before]: 
+ min: 0.571, mean: 0.891, max: 0.955 
+[after]: 
+ min: 0.658, mean: 0.924, max: 0.942 
+
+ ========= Video: LMA-11.mp4, standard image: LMA-11_0023800.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.402, max: 0.708 
+[after]: 
+ min: 0.004, mean: 0.129, max: 0.704 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.402, max: 0.708 
+[after]: 
+ min: 0.004, mean: 0.129, max: 0.704 
+-------------> dist_euc: 
+[before]: 
+ min: 0.606, mean: 0.955, max: 0.968 
+[after]: 
+ min: 0.720, mean: 0.928, max: 0.966 
+
+ ========= Video: LMA-13a.mp4, standard image: LMA-13a_0012252.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.001, mean: 0.136, max: 0.740 
+[after]: 
+ min: 0.004, mean: 0.087, max: 0.151 
+-------------> dist_dot: 
+[before]: 
+ min: 0.001, mean: 0.136, max: 0.740 
+[after]: 
+ min: 0.004, mean: 0.087, max: 0.151 
+-------------> dist_euc: 
+[before]: 
+ min: 0.577, mean: 0.933, max: 0.966 
+[after]: 
+ min: 0.727, mean: 0.923, max: 0.942 
+
+ ========= Video: LMA-14a.mp4, standard image: LMA-14a_0002400.jpg =============== 
+-------------> dist_cosine: 
+[before]: 
+ min: 0.002, mean: 0.210, max: 0.448 
+[after]: 
+ min: 0.016, mean: 0.103, max: 0.195 
+-------------> dist_dot: 
+[before]: 
+ min: 0.002, mean: 0.210, max: 0.448 
+[after]: 
+ min: 0.016, mean: 0.103, max: 0.195 
+-------------> dist_euc: 
+[before]: 
+ min: 0.594, mean: 0.941, max: 0.965 
+[after]: 
+ min: 0.819, mean: 0.925, max: 0.942 

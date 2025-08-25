@@ -1,0 +1,5 @@
+model_name: mobilenetv2_pmg
+widen_factor: 1
+mobilenet_feature_size: 320
+pretrain: True
+require_grad: True

@@ -153,11 +153,11 @@ class PMG(nn.Module):
                 m.init_weights()
 
     def forward(self, x):
-        xf1, xf2, xf3, xf4, xf5 = self.backbone(x)
-
-        xl1 = self.conv_block1(xf3)
-        xl2 = self.conv_block2(xf4)
-        xl3 = self.conv_block3(xf5)
+        outs = self.backbone(x)
+        xf1, xf2, xf3 = outs[0], outs[1], outs[2]
+        xl1 = self.conv_block1(xf1)
+        xl2 = self.conv_block2(xf2)
+        xl3 = self.conv_block3(xf3)
 
         xl1 = self.max1(xl1)
         xl1 = xl1.view(xl1.size(0), -1)

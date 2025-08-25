@@ -1,0 +1,15 @@
+path: ../datasets/lma_fine-tuning # dataset root dir
+train: train  # train images
+val: val  # val images
+test: trainval # test images (optional)
+quant: trainval  # quantization dataset used to export the model
+
+classes_num: 6
+
+custom_mapping:
+  in-vitro: 0  # 体外
+  oral-cavity: 1  # 口腔
+  epiglottic-vallecula: 2  # 会厌谷
+  airway: 3  # 气道
+  mucus: 4  # 粘液
+  occlusion: 5  # 遮挡

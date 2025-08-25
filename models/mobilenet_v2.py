@@ -129,9 +129,9 @@ class MobileNetV2(nn.Module):
         self.widen_factor = widen_factor
         self.out_indices = out_indices
         for index in out_indices:
-            if index not in range(0, 8):
+            if index not in range(0, 9):
                 raise ValueError('the item in out_indices must in '
-                                 f'range(0, 8). But received {index}')
+                                 f'range(0, 9). But received {index}')
         self.with_cp = with_cp
 
         self.in_channels = make_divisible(32 * widen_factor, 8)
@@ -168,6 +168,10 @@ class MobileNetV2(nn.Module):
         self.add_module('conv2', layer)
         self.layers.append('conv2')
 
+        avgpool = nn.AvgPool2d((14, 14))
+        self.add_module('pool', avgpool)
+        self.layers.append('pool')
+
     def make_layer(self, out_channels, num_blocks, stride, expand_ratio):
         """Stack InvertedResidual blocks to build a layer for MobileNetV2.
 
@@ -200,12 +204,13 @@ class MobileNetV2(nn.Module):
             x = layer(x)
             if i in self.out_indices:
                 outs.append(x)
-
-        return outs[0], outs[1], outs[2], outs[4], outs[6]
+        # x = self.pool(x)
+        # outs.append(x)
+        return outs
 
 
 if __name__ == "__main__":
-    imgs = torch.randn(1, 3, 448, 448)
+    imgs = torch.randn(1, 3, 224, 224)
     model = MobileNetV2(out_indices=range(0, 8))
 
     feat = model(imgs)

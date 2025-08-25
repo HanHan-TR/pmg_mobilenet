@@ -93,7 +93,7 @@ def set_random_seed(seed: int, deterministic: bool = False):
         torch.backends.cudnn.benchmark = False
 
 
-def load_state_dict(module, state_dict, strict=False, logger=None):
+def load_state_dict(module, state_dict, prefix='', strict=False, logger=None):
     """将状态字典加载到模块中。
 
     该方法修改自 :meth:torch.nn.Module.load_state_dict。
@@ -122,7 +122,7 @@ def load_state_dict(module, state_dict, strict=False, logger=None):
     if metadata is not None:
         state_dict._metadata = metadata  # 保持元数据完整
 
-    def load(module, prefix=''):
+    def load(module, prefix=prefix):
         local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
         # 调用PyTorch底层加载方法
         module._load_from_state_dict(state_dict,

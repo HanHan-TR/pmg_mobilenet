@@ -1,0 +1,5 @@
+path: ../datasets/ETI_20250802 # dataset root dir
+train: train  # train images
+val: val  # val images
+test: trainval # test images (optional)
+quant: trainval  # quantization dataset used to export the model

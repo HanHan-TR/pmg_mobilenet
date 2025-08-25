@@ -1,6 +1,8 @@
+import torch
 import torch.nn as nn
+from torch.nn.modules.batchnorm import _BatchNorm
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
-
+from typing import Union, Optional, List, Sequence
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152', 'resnext50_32x4d', 'resnext101_32x8d']
@@ -111,9 +113,18 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=1000, zero_init_residual=False,
-                 groups=1, width_per_group=64, replace_stride_with_dilation=None,
-                 norm_layer=None):
+    arch_settings = [[64, 1], [128, 1], [256, 1], [512, 1]]
+
+    def __init__(self,
+                 block: Union[BasicBlock, Bottleneck],
+                 layers: List[int],
+                 num_classes: int = 1000,
+                 zero_init_residual: bool = False,
+                 groups: int = 1,
+                 width_per_group: int = 64,
+                 replace_stride_with_dilation: Optional[bool] = None,
+                 out_indices: Optional[Sequence[int]] = (1, 2, 3),
+                 norm_layer: Optional[_BatchNorm] = None):
         super(ResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -130,18 +141,37 @@ class ResNet(nn.Module):
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
         self.groups = groups
         self.base_width = width_per_group
+        self.out_indices = out_indices
+        for index in out_indices:
+            if index not in range(0, 4):
+                raise ValueError('the item in out_indices must in '
+                                 f'range(0, 4). But received {index}')
+
         self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
-                                       dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
-                                       dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
-                                       dilate=replace_stride_with_dilation[2])
+
+        self.layers = []
+        for i, cfg in enumerate(self.arch_settings):
+            planes, stride = cfg
+            res_layer = self._make_layer(block=block,
+                                         planes=planes,
+                                         blocks=layers[i],
+                                         stride=stride)
+            layer_name = f'layer{i + 1}'
+            self.add_module(layer_name, res_layer)
+            self.layers.append(layer_name)
+
+        # self.layer1 = self._make_layer(block, 64, layers[0])
+        # self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
+        #                                dilate=replace_stride_with_dilation[0])
+        # self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
+        #                                dilate=replace_stride_with_dilation[1])
+        # self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
+        #                                dilate=replace_stride_with_dilation[2])
+
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -190,18 +220,24 @@ class ResNet(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        x1 = self.maxpool(x)
+        outs = []
+        x = self.maxpool(x)
+        for i, layer_name in enumerate(self.layers):
+            layer = getattr(self, layer_name)
+            x = layer(x)
+            if i in self.out_indices:
+                outs.append(x)
 
-        x2 = self.layer1(x1)
-        x3 = self.layer2(x2)
-        x4 = self.layer3(x3)
-        x5 = self.layer4(x4)
+        # x2 = self.layer1(x1)
+        # x3 = self.layer2(x2)
+        # x4 = self.layer3(x3)
+        # x5 = self.layer4(x4)
 
-        x = self.avgpool(x5)
+        x = self.avgpool(x)
         x = x.reshape(x.size(0), -1)
         x = self.fc(x)
 
-        return x1, x2, x3, x4, x5
+        return outs
 
 
 def _resnet(arch, inplanes, planes, pretrained, progress, **kwargs):
@@ -276,3 +312,12 @@ def resnext101_32x8d(**kwargs):
     kwargs['width_per_group'] = 8
     return _resnet('resnext101_32x8d', Bottleneck, [3, 4, 23, 3],
                    pretrained=False, progress=True, **kwargs)
+
+
+if __name__ == "__main__":
+    imgs = torch.randn(1, 3, 224, 224)
+    model = resnet50(pretrained=False)
+
+    feat = model(imgs)
+
+    feat = model(imgs)
