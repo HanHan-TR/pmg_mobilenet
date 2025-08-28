@@ -75,6 +75,7 @@ def feat_diff(model,
         'dist_dot': {'before': {'min': None, 'max': None, 'mean': None}, 'after': {'min': None, 'max': None, 'mean': None}},
         'dist_euc': {'before': {'min': None, 'max': None, 'mean': None}, 'after': {'min': None, 'max': None, 'mean': None}}
     }
+
     model.eval().to('cuda')
     standard_frame_indx = extract_number(image)  # 标准图像在第几帧
     dist_summary.update(video=video, standard_image=image, standard_frame_indx=standard_frame_indx)
@@ -106,7 +107,6 @@ def feat_diff(model,
         d_euc = euclidean_distance(standard_feat, frame_feat)
 
         # 计算特征的差异性
-
         if count > standard_frame_indx:
             dist_cosine['after'].append(d_cosine)
             dist_dot['after'].append(d_dot)
