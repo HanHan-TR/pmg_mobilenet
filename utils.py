@@ -51,7 +51,7 @@ def load_model(model_name: str,
         for param in net.parameters():
             param.requires_grad = require_grad
         net = PMG(net,
-                  inplanes=[32, 96, 320],
+                  inplanes=[32, 96, 1280],
                   feature_size=mobilenet_feature_size,
                   widen_factor=widen_factor,
                   classes_num=classes_num)

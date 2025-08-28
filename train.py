@@ -16,6 +16,7 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 RANK = int(os.getenv('RANK', -1))
 
 from core.fileio import increment_path, yaml_load, yaml_save
+from core.initialize import init_random_seed, set_random_seed
 from core.dataset import creat_dataset
 from utils import jigsaw_generator, load_model, cosine_anneal_schedule, test
 
@@ -31,15 +32,19 @@ def train(opt):
     except Exception:
         os.makedirs(exp_dir)
 
-    use_cuda = torch.cuda.is_available()
+    weight_dir, cfg_dir = exp_dir / 'weights', exp_dir / 'cfg'
+    weight_dir.mkdir(parents=True, exist_ok=True)
+    cfg_dir.mkdir(parents=True, exist_ok=True)
 
-    # network_hyp, dataset_cfg, train_settings = yaml_load(opt.network_hyp), yaml_load(opt.dataset_cfg), yaml_load(opt.train_settings)
-    network_hyp = yaml_load(opt.network_hyp)
-    dataset_cfg = yaml_load(opt.dataset_cfg)
-    train_settings = yaml_load(opt.train_settings)
-    yaml_save(exp_dir / 'network_hyp.yaml', network_hyp)
-    yaml_save(exp_dir / 'dataset_cfg.yaml', dataset_cfg)
-    yaml_save(exp_dir / 'train_settings.yaml', train_settings)
+    network_hyp, dataset_cfg, train_settings = yaml_load(opt.network_hyp), yaml_load(opt.dataset_cfg), yaml_load(opt.train_settings)
+    yaml_save(cfg_dir / 'network_hyp.yaml', network_hyp)
+    yaml_save(cfg_dir / 'dataset_cfg.yaml', dataset_cfg)
+    yaml_save(cfg_dir / 'train_settings.yaml', train_settings)
+
+    # 设置随机种子, 保证算法的可复现性
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    seed = init_random_seed(seed=train_settings.get('seed', 0), device=device)
+    set_random_seed(seed=seed, deterministic=train_settings.get('deterministic', False))
 
     # Data
     print('==> Preparing data..')  # 根据是否进行交叉验证使用不同的创建方式进行数据集创建
@@ -65,7 +70,6 @@ def train(opt):
         net.load_state_dict(checkpoint['model'])
 
     # netp = torch.nn.DataParallel(net, device_ids=[0])
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # GPU
     net.to(device)
 
@@ -104,8 +108,8 @@ def train(opt):
             idx = batch_idx
             if inputs.shape[0] < train_settings['batch_size_train']:
                 continue
-            if use_cuda:
-                inputs, targets = inputs.to(device), targets.to(device)
+
+            inputs, targets = inputs.to(device), targets.to(device)
 
             # update learning rate
 
@@ -161,10 +165,9 @@ def train(opt):
         train_acc = 100. * float(correct) / total
         train_loss = train_loss / (idx + 1)
         with open(str(exp_dir) + '/results_train.txt', 'a') as file:
-            file.write(
-                'Iteration %d | train_acc = %.5f | train_loss = %.5f | Loss1: %.3f | Loss2: %.5f | Loss3: %.5f | Loss_concat: %.5f |\n' % (
-                    epoch, train_acc, train_loss, train_loss1 / (idx + 1), train_loss2 / (idx + 1), train_loss3 / (idx + 1),
-                    train_loss4 / (idx + 1)))
+            file.write('Iteration %d | train_acc = %.5f | train_loss = %.5f | Loss1: %.3f | Loss2: %.5f | Loss3: %.5f | Loss_concat: %.5f |\n' % (
+                epoch, train_acc, train_loss, train_loss1 / (idx + 1), train_loss2 / (idx + 1), train_loss3 / (idx + 1),
+                train_loss4 / (idx + 1)))
 
         val_acc, val_acc_com, val_loss = test(net=net,
                                               dataloader=valloader,
@@ -174,11 +177,11 @@ def train(opt):
             max_val_acc = val_acc_com
             # model_name="/model_epoch{}.pt".format(epoch)
             state = {'epoch': epoch,
-                     'model': net.state_dict(),
+                     'state_dict': net.state_dict(),
                      'accuracy': val_acc_com,
                      }
             model_name = "/best.pth"
-            torch.save(state, str(exp_dir) + model_name)
+            torch.save(state, str(weight_dir) + model_name)
             with open(str(exp_dir) + '/results_test.txt', 'a') as file:
                 file.write('Iteration  %d, test_acc = %.5f, test_acc_combined = %.5f, test_loss = %.6f\n' % (epoch, val_acc, val_acc_com, val_loss))
 
