@@ -19,11 +19,21 @@ RANK = int(os.getenv('RANK', -1))
 from models.mobilenet_v2 import MobileNetV2
 from core.initialize import load_state_dict
 from core.fileio import extract_number
-from tools.feature_similarity import cosine_distance, dot_product_distance, euclidean_distance
+from tools.feature_similarity import cosine_distance
 
 TQDM_BAR_FORMAT = '{l_bar}{bar:20}{r_bar}'
 
 data_root = Path('../datasets/LMA_standard')
+
+splits = {
+    'LMA-1a': {
+        'tiwai': range(0, 1),
+        'zhiru': range(0, 1),
+        'wending': range(0, 1),
+        'yundong': range(0, 1),
+        'tuichu': range(0, 1),
+    }
+}
 img_names = [
     'LMA-1a_0006831.jpg', 'LMA-2_0002115.jpg', 'LMA-3_0002607.jpg', 'LMA-4_0002001.jpg', 'LMA-5_0001500.jpg',
     'LMA-6_0000900.jpg', 'LMA-7_0000800.jpg', 'LMA-8_0000500.jpg', 'LMA-11_0023800.jpg', 'LMA-13a_0012252.jpg',
@@ -65,15 +75,20 @@ transform = A.Compose([  # 归一化与转换成 Tensor 模式
 def feat_diff(model,
               video,
               image,
+              splits=dict(),
               data_root=Path('../datasets/LMA_standard')):
     # 初始化 dist_summary 字典，并直接添加距离键
     dist_summary = {
         'video': None,  # 这些键通过 update 添加，但这里预先定义
         'standard_image': None,
         'standard_frame_idx': None,
-        'dist_cosine': {'before': {'min': None, 'max': None, 'mean': None}, 'after': {'min': None, 'max': None, 'mean': None}},  # 初始化嵌套结构
-        'dist_dot': {'before': {'min': None, 'max': None, 'mean': None}, 'after': {'min': None, 'max': None, 'mean': None}},
-        'dist_euc': {'before': {'min': None, 'max': None, 'mean': None}, 'after': {'min': None, 'max': None, 'mean': None}}
+        'dist': {'tiwai': {'data': [], 'min': None, 'max': None, 'mean': None},
+                 'zhiru': {'data': [], 'min': None, 'max': None, 'mean': None},
+                 'wending': {'data': [], 'min': None, 'max': None, 'mean': None},
+                 'yundong': {'data': [], 'min': None, 'max': None, 'mean': None},
+                 'tuichu': {'data': [], 'min': None, 'max': None, 'mean': None},
+
+                 },  # 初始化嵌套结构
     }
 
     model.eval().to('cuda')
@@ -103,25 +118,16 @@ def feat_diff(model,
         frame_input = transform(image=frame)['image'].unsqueeze(0).to('cuda')
         frame_feat = model(frame_input)[0]
         d_cosine = cosine_distance(standard_feat, frame_feat)
-        d_dot = dot_product_distance(standard_feat, frame_feat)
-        d_euc = euclidean_distance(standard_feat, frame_feat)
 
         # 计算特征的差异性
-        if count > standard_frame_indx:
-            dist_cosine['after'].append(d_cosine)
-            dist_dot['after'].append(d_dot)
-            dist_euc['after'].append(d_euc)
-            process_bar.desc = f"Video {dist_summary['video']} mean distance (after): cosine: {sum(dist_cosine['after'])/ len(dist_cosine['after'])}, " \
-                               f"dot: {sum(dist_dot['after'])/ len(dist_dot['after'])}, " \
-                               f"euclidean: {sum(dist_euc['after'])/ len(dist_euc['after'])}, "
-        else:
-            dist_cosine['before'].append(d_cosine)
-            dist_dot['before'].append(d_dot)
-            dist_euc['before'].append(d_euc)
+        for key, value in splits.items():
+            if value is not None and count in value:
+                dist_summary['dist'][key]['data'].append(d_cosine)
+                dist_summary['dist'][key]['max'] = max(dist_summary['dist'][key]['data'])
+                dist_summary['dist'][key]['min'] = min(dist_summary['dist'][key]['data'])
+                dist_summary['dist'][key]['mean'] = sum(dist_summary['dist'][key]['data']) / len(dist_summary['dist'][key]['data'])
 
-            process_bar.desc = f"Video {dist_summary['video']} mean distance (before): cosine: {sum(dist_cosine['before'])/ len(dist_cosine['before'])}, " \
-                               f"dot: {sum(dist_dot['before'])/ len(dist_dot['before'])}, " \
-                               f"euclidean: {sum(dist_euc['before'])/ len(dist_euc['before'])}, "
+            process_bar.desc = f"Video {dist_summary['video']} mean distance (before): cosine: dist_summary['dist'][key]['mean'], "
 
     title = f"\n ========= Video: {dist_summary['video']}, standard image: {dist_summary['standard_image']} =============== \n"
     with open('lma_similarity_test.log', 'a') as file:
@@ -170,7 +176,10 @@ if __name__ == "__main__":
     for i in range(len(img_names)):
         image_name = img_names[i]
         video_name = video_names[i]
-        feat_diff(model=model, video=video_name, image=image_name)
+        feat_diff(model=model,
+                  video=video_name,
+                  image=image_name,
+                  splits=splits['LMA-1a'])
 
 
 diff_before, diff_after = [], []
